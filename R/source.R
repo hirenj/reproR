@@ -1,11 +1,13 @@
 
 wanted_files <- list()
 
+#' Reset watchfile list
 #' @export
 reset <- function() {
   wanted_files <<- list()
 }
 
+#' source files
 #' @export
 source <- function(file,...) {
   status = git2r::status(repo())
@@ -35,12 +37,13 @@ source <- function(file,...) {
   base::source(file,...)
 }
 
+#' Add a table to the watchfiles
 #' @export
 read.delim <- function(...) {
   read.table(...)
 }
 
-# we also need read.table
+#' Add a table to the watchfiles
 #' @export
 read.table <- function(file=filename,...) {
   status = git2r::status(repo())
@@ -70,6 +73,7 @@ read.table <- function(file=filename,...) {
   utils::read.table(file,...)
 }
 
+#' Generate a patch file from all the files we are watching
 #' @export
 generatePatch <- function(patchfile='changed.patch') {
   file.remove(patchfile)
