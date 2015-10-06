@@ -4,7 +4,7 @@ Title: R wrapper for git to enable reproducibility
 Version: 0.1
 Date: 2015-10-06
 Author: Hiren Joshi
-Maintainer: Hiren Joshi
+Maintainer: Hiren Joshi <code@glycocode.com>
 Description: Wrap methods for sourcing data to make file versioning more chatty
 License: TBD
 LazyData: TRUE
