@@ -25,5 +25,9 @@ status.md <- function(session=F) {
 	  sessionText='sessionInfo()'
 	}
 	remote_url = parseRemote(git2r::remote_url(repo()),current_commit)
-	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n<object type="application/pdf" data="file://changed.patch" data-attachment="patchfile.patch" ></object>',sep=''))
+	patch_file=''
+	if (file.exists('changed.patch')) {
+		patch_file = '<object type="application/pdf" data="file://changed.patch" data-attachment="patchfile.patch" ></object>'
+	}
+	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
