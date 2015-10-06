@@ -1,6 +1,6 @@
 Package: reproR
 Type: Package
-Title: R wrapper for git to enable reproducibility
+Title: R wrapper for git to enable reproducibility for local projects
 Version: 0.1
 Date: 2015-10-06
 Author: Hiren Joshi
