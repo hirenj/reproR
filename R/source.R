@@ -1,6 +1,12 @@
 
 wanted_files <- list()
 
+#' @export
+reset <- function() {
+  wanted_files <<- list()
+}
+
+#' @export
 source <- function(file,...) {
   status = git2r::status(repo())
   dirty_files = unlist(status$unstaged)
@@ -29,9 +35,43 @@ source <- function(file,...) {
   base::source(file,...)
 }
 
-# we also need read.table
+#' @export
+read.delim <- function(...) {
+  read.table(...)
+}
 
-patch_file <- function(patchfile='changed.patch') {
+# we also need read.table
+#' @export
+read.table <- function(file=filename,...) {
+  status = git2r::status(repo())
+  dirty_files = unlist(status$unstaged)
+  missing_files = unlist(status$untracked)
+
+  # Autocommit any staged files when
+  # there's a flag
+
+  # Autostage and autocommit any files
+  # when a flag is set
+  dirty = F
+  if (file %in% dirty_files) {
+    message(file," has untracked changes, commit to get a version number.")
+    dirty=T
+  }
+  if (file %in% missing_files) {
+    message(file," is not in the repository, you can't reproduce this.")
+    dirty=T
+  }
+  if (! dirty) {
+    message(file,git2r::commits(repo())[[1]]@sha)
+  }
+  # We should show the SHA hash for the commit object for this repository
+  # and store the diff somewhere if it has been changed
+  wanted_files <<- unique( c( wanted_files, file ) )
+  utils::read.table(file,...)
+}
+
+#' @export
+generatePatch <- function(patchfile='changed.patch') {
   file.remove(patchfile)
   status = git2r::status(repo())
   missing_files = intersect ( unlist(status$untracked) , wanted_files )

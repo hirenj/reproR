@@ -8,3 +8,5 @@ Maintainer: Hiren Joshi <code@glycocode.com>
 Description: Wrap methods for sourcing data to make file versioning more chatty
 License: TBD
 LazyData: TRUE
+Imports:
+	git2r
