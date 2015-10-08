@@ -1,10 +1,11 @@
+cacheEnv <- new.env()
 
-wanted_files <- list()
+assign('wanted_files',list(),envir=cacheEnv)
 
 #' Reset watchfile list
 #' @export
 reset <- function() {
-  wanted_files <<- list()
+  assign('wanted_files',list(),envir=cacheEnv)
 }
 
 #' source files
@@ -33,7 +34,7 @@ source <- function(file,...) {
   }
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
-  wanted_files <<- unique( c( wanted_files, file ) )
+  assign('wanted_files', unique( c( get('wanted_files',envir=cacheEnv), file ) ))
   base::source(file,...)
 }
 
@@ -69,7 +70,7 @@ read.table <- function(file=filename,...) {
   }
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
-  wanted_files <<- unique( c( wanted_files, file ) )
+  assign('wanted_files', unique( c( get('wanted_files',envir=cacheEnv), file ) ))
   utils::read.table(file,...)
 }
 
@@ -78,7 +79,7 @@ read.table <- function(file=filename,...) {
 generatePatch <- function(patchfile='changed.patch') {
   file.remove(patchfile)
   status = git2r::status(repo())
-  missing_files = intersect ( unlist(status$untracked) , wanted_files )
+  missing_files = intersect ( unlist(status$untracked) , get('wanted_files',envir=cacheEnv) )
   for (file in missing_files) {
     git2r::add(repo(),file)
   }
