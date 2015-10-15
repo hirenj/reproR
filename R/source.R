@@ -2,6 +2,10 @@ cacheEnv <- new.env()
 
 assign('wanted_files',list(),envir=cacheEnv)
 
+is_repo <- function() {
+  git2r::in_repository('.')
+}
+
 #' Reset watchfile list
 #' @export
 reset <- function() {
@@ -11,6 +15,9 @@ reset <- function() {
 #' source files
 #' @export
 source <- function(file,...) {
+  if ( ! is_repo() ) {
+    return(base::source(file,...))
+  }
   status = git2r::status(repo())
   dirty_files = unlist(status$unstaged)
   missing_files = unlist(status$untracked)
@@ -47,6 +54,9 @@ read.delim <- function(...) {
 #' Add a table to the watchfiles
 #' @export
 read.table <- function(file=filename,...) {
+  if ( ! is_repo() ) {
+    return(utils::read.table(file,...))
+  }
   status = git2r::status(repo())
   dirty_files = unlist(status$unstaged)
   missing_files = unlist(status$untracked)
@@ -77,6 +87,9 @@ read.table <- function(file=filename,...) {
 #' Generate a patch file from all the files we are watching
 #' @export
 generatePatch <- function(patchfile='changed.patch') {
+  if ( ! is_repo() ) {
+    return()
+  }
   file.remove(patchfile)
   status = git2r::status(repo())
   missing_files = intersect ( unlist(status$untracked) , get('wanted_files',envir=cacheEnv) )

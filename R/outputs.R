@@ -19,7 +19,10 @@ parseRemote <- function(url,sha) {
 #' Generate markdown
 #' @export
 status.md <- function(session=F) {
-	current_commit = git2r::commits(repo())[[1]]@sha
+  if ( ! is_repo() ) {
+    return('## Not tracked in a repository')
+  }
+  current_commit = git2r::commits(repo())[[1]]@sha
 	sessionText='TRUE'
 	if (session) {
 	  sessionText='sessionInfo()'
