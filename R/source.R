@@ -84,6 +84,38 @@ read.table <- function(file=filename,...) {
   utils::read.table(file,...)
 }
 
+#' Add a file read in via readLines
+#' @export
+readLines <- function(con = stdin(),...) {
+  if ( ! is_repo() || ! is.character(con) ) {
+    return(base::readLines(con,...))
+  }
+  status = git2r::status(repo())
+  dirty_files = unlist(status$unstaged)
+  missing_files = unlist(status$untracked)
+
+  # Autocommit any staged files when
+  # there's a flag
+
+  # Autostage and autocommit any files
+  # when a flag is set
+  dirty = F
+  if (con %in% dirty_files) {
+    message(con," has untracked changes, commit to get a version number.")
+    dirty=T
+  }
+  if (con %in% missing_files) {
+    message(con," is not in the repository, you can't reproduce this.")
+    dirty=T
+  }
+  if (! dirty) {
+    message(con,git2r::commits(repo())[[1]]@sha)
+  }
+  # We should show the SHA hash for the commit object for this repository
+  # and store the diff somewhere if it has been changed
+  assign('wanted_files', unique( c( get('wanted_files',envir=cacheEnv), con ) ))
+}
+
 #' Generate a patch file from all the files we are watching
 #' @export
 generatePatch <- function(patchfile='changed.patch') {

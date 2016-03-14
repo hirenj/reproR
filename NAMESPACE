@@ -3,6 +3,7 @@
 export(generatePatch)
 export(read.delim)
 export(read.table)
+export(readLines)
 export(reset)
 export(source)
 export(status.md)
