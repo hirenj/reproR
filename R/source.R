@@ -114,6 +114,7 @@ readLines <- function(con = stdin(),...) {
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
   assign('wanted_files', unique( c( get('wanted_files',envir=cacheEnv), con ) ))
+  return(base::readLines(con,...))
 }
 
 #' Generate a patch file from all the files we are watching
