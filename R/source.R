@@ -123,7 +123,7 @@ generatePatch <- function(patchfile='changed.patch') {
   if ( ! is_repo() ) {
     return()
   }
-  file.remove(patchfile)
+  file.remove(patchfile,showWarnings=F)
   status = git2r::status(repo())
   missing_files = intersect ( unlist(status$untracked) , get('wanted_files',envir=cacheEnv) )
   for (file in missing_files) {
