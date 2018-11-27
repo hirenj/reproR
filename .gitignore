@@ -1,3 +1,5 @@
+pkg/
+man/
 .Rproj.user
 .Rhistory
 .RData
