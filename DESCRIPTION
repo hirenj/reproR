@@ -1,8 +1,8 @@
 Package: reproR
 Type: Package
 Title: R wrapper for git to enable reproducibility for local projects
-Version: 0.1.10
-Date: 2016-03-14
+Version: 0.1.11
+Date: 2018-11-27
 Author: Hiren Joshi
 Maintainer: Hiren Joshi <code@glycocode.com>
 Description: Wrap methods for sourcing data to make file versioning more chatty
