@@ -35,3 +35,22 @@ status.md <- function(session=F) {
 	}
 	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
+
+#' Perform a Note
+#' @export
+note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint')) {
+  pwd = rev(unlist(strsplit(getwd(),'/')))[1]
+  if (grepl('^proj_',pwd)) {
+    pwd = gsub('^proj_','',pwd)
+  }
+  if ( ! file.exists(filename) ) {
+    stop(paste('No ',filename,sep=''))
+  }
+  knitr::opts_chunk$set(cache=TRUE,cache.path=paste('cache_',gsub('\\..*','',filename),'/',sep=''))
+  if (is.null(notebook)) {
+    loaded_data = new.env()
+    output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data)
+    return(loaded_data)
+  }
+  knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T)
+}
