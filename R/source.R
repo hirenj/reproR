@@ -52,8 +52,8 @@ source <- function(file,...) {
 
 #' Add a table to the watchfiles
 #' @export
-read.delim <- function(...) {
-  read.table(...)
+read.delim <- function(file,header=T,sep="\t",quote="\"",dec=".",fill=T,comment.char="",...) {
+  read.table(file = file, header = header, sep = sep, quote = quote, dec = dec, fill = fill, comment.char = comment.char, ...)
 }
 
 #' Add a table to the watchfiles

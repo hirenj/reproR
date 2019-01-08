@@ -38,7 +38,7 @@ status.md <- function(session=F) {
 
 #' Perform a Note
 #' @export
-note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint')) {
+note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL) {
   pwd = rev(unlist(strsplit(getwd(),'/')))[1]
   if (grepl('^proj_',pwd)) {
     pwd = gsub('^proj_','',pwd)
@@ -47,9 +47,14 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     stop(paste('No ',filename,sep=''))
   }
   knitr::opts_chunk$set(cache=TRUE,cache.path=paste('cache_',gsub('\\..*','',filename),'/',sep=''))
-  if (is.null(notebook)) {
+  if (is.null(notebook) && is.null(output)) {
     loaded_data = new.env()
     output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data)
+    return(loaded_data)
+  }
+  if (is.null(notebook) && ! is.null(output)) {
+    loaded_data = new.env()
+    output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data,output=output)
     return(loaded_data)
   }
   knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T)
