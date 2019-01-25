@@ -42,7 +42,7 @@ source <- function(file,...) {
     dirty=T
   }
   if (! dirty) {
-    message(file,git2r::commits(repo())[[1]]@sha)
+    message(file,git2r::commits(repo())[[1]]$sha)
   }
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
@@ -81,7 +81,7 @@ read.table <- function(file=filename,...) {
     dirty=T
   }
   if (! dirty) {
-    message(file,git2r::commits(repo())[[1]]@sha)
+    message(file,git2r::commits(repo())[[1]]$sha)
   }
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
@@ -114,7 +114,7 @@ readLines <- function(con = stdin(),...) {
     dirty=T
   }
   if (! dirty) {
-    message(con,git2r::commits(repo())[[1]]@sha)
+    message(con,git2r::commits(repo())[[1]]$sha)
   }
   # We should show the SHA hash for the commit object for this repository
   # and store the diff somewhere if it has been changed
