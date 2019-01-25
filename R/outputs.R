@@ -38,7 +38,7 @@ status.md <- function(session=F) {
 
 #' Perform a Note
 #' @export
-note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL) {
+note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10) {
   pwd = rev(unlist(strsplit(getwd(),'/')))[1]
   if (grepl('^proj_',pwd)) {
     pwd = gsub('^proj_','',pwd)
@@ -57,5 +57,5 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data,output=output)
     return(loaded_data)
   }
-  knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T)
+  knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T,batch.chunks=10)
 }
