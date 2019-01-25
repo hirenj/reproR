@@ -9,5 +9,5 @@ Description: Wrap methods for sourcing data to make file versioning more chatty
 License: TBD
 LazyData: TRUE
 Imports:
-    git2r
+    git2r (>= 0.22)
 RoxygenNote: 5.0.1
