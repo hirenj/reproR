@@ -57,5 +57,5 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data,output=output)
     return(loaded_data)
   }
-  knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T,batch.chunks=10)
+  knoter::knote(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),output=paste('knitr.',pwd,'.html',sep=''),notebook = notebook,section=pwd,sharepoint=sharepoint,auto.archive = T,batch.chunks)
 }
