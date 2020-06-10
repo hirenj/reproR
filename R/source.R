@@ -19,7 +19,7 @@ source <- function(file,...) {
     return(base::source(file,...))
   }
 
-  if ( any(grepl('^/Applications',file)) ) {
+  if ( ! any(grepl(getwd(),normalizePath(file))) ) {
     return(base::source(file,...))
   }
 
