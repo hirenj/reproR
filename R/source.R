@@ -3,6 +3,9 @@ cacheEnv <- new.env()
 assign('wanted_files',list(),envir=cacheEnv)
 
 is_repo <- function() {
+  if (getOption("reproR.skip_repo")) {
+    return(FALSE)
+  }
   git2r::in_repository('.')
 }
 
