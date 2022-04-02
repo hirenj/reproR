@@ -2,6 +2,7 @@
 
 export(generatePatch)
 export(note)
+export(note_testrun)
 export(read.delim)
 export(read.table)
 export(readLines)

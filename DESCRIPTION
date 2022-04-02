@@ -10,4 +10,4 @@ License: TBD
 LazyData: TRUE
 Imports:
     git2r (>= 0.22)
-RoxygenNote: 6.1.0.9000
+RoxygenNote: 7.1.0
