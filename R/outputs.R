@@ -37,6 +37,7 @@ status.md <- function(session=F) {
 }
 
 #' Perform a Note testrun
+#' @export
 note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE) {
 	if ( ! reuse.cache ) {
 		cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
