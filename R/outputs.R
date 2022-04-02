@@ -36,9 +36,23 @@ status.md <- function(session=F) {
 	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
 
+#' Perform a Note testrun
+note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE) {
+	if ( ! reuse.cache ) {
+		cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
+		if ( file.exists(cache_path) ) {
+			unlink( cache_path, recursive = TRUE )
+		}
+	}
+	note(filename,notebook=NULL,output=output)
+}
+
 #' Perform a Note
 #' @export
 note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10) {
+
+	Rgator:::getDataEnvironment();
+
   pwd = rev(unlist(strsplit(getwd(),'/')))[1]
   if (grepl('^proj_',pwd)) {
     pwd = gsub('^proj_','',pwd)
