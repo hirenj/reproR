@@ -36,6 +36,28 @@ status.md <- function(session=F) {
 	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
 
+#' Reload a fully cached Note run
+#' @export
+load_cached_note_run = function (filename = "analysis.Rmd") 
+{
+  Rgator:::getDataEnvironment()
+
+  orig_cache_path = paste("cache_", gsub("\\..*", "", filename), "/", sep = "")
+  temp_cache_path = tempfile()
+  dir.create(temp_cache_path)
+  fs::dir_copy(orig_cache_path, temp_cache_path)
+  fs::file_copy(filename,temp_cache_path)
+  orig_wd=getwd()
+  setwd(temp_cache_path)
+  knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
+  loaded_data = new.env()
+  output_text = knoter::knit(text = paste(c(readLines(filename), 
+                                              status.md(session = T)), collapse = "\n"), envir = loaded_data)
+
+  setwd(orig_wd)
+  return(loaded_data)
+}
+
 #' Perform a Note testrun
 #' @export
 note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE) {
