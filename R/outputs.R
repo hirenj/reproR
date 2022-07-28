@@ -1,19 +1,19 @@
 parseRemote <- function(url,sha) {
-	url_components = strsplit(url,'/')
-	lapply(url_components,function(components) {
-		if ("github.com" %in% components) {
-			return(paste("https://github.com/",components[4],"/",gsub('\\.git','',components[5]),"/commit/",sha,sep=""))
-		}
-		if (length(grep("@github.com",components)) > 0) {
-			return(paste("https://github.com/",gsub(".*:","",components[1]),"/",gsub('\\.git','',components[2]), "/commit/",sha,sep="" ))
-		}
-		if ("gist.github.com" %in% components) {
-			return(paste("https://gist.github.com/",gsub('\\.git','',components[4]),"/",sha,sep=""))
-		}
-		if (length(grep("@gist.github.com",components)) > 0) {
-			return(paste("https://gist.github.com/",gsub( '\\.git','',gsub(".*:","",components[1])),"/",sha,sep="" ))
-		}
-	})
+  url_components = strsplit(url,'/')
+  lapply(url_components,function(components) {
+    if ("github.com" %in% components) {
+      return(paste("https://github.com/",components[4],"/",gsub('\\.git','',components[5]),"/commit/",sha,sep=""))
+    }
+    if (length(grep("@github.com",components)) > 0) {
+      return(paste("https://github.com/",gsub(".*:","",components[1]),"/",gsub('\\.git','',components[2]), "/commit/",sha,sep="" ))
+    }
+    if ("gist.github.com" %in% components) {
+      return(paste("https://gist.github.com/",gsub('\\.git','',components[4]),"/",sha,sep=""))
+    }
+    if (length(grep("@gist.github.com",components)) > 0) {
+      return(paste("https://gist.github.com/",gsub( '\\.git','',gsub(".*:","",components[1])),"/",sha,sep="" ))
+    }
+  })
 }
 
 #' Generate markdown
@@ -23,17 +23,17 @@ status.md <- function(session=F) {
     return('## Not tracked in a repository')
   }
   current_commit = git2r::commits(repo())[[1]]$sha
-	sessionText='TRUE'
-	if (session) {
-	  sessionText='sessionInfo()'
-	}
-	remote_url = parseRemote(git2r::remote_url(repo()),current_commit)
-	generatePatch('changed.patch')
-	patch_file=''
-	if (file.exists('changed.patch')) {
-		patch_file = '<object type="application/pdf" data="file://changed.patch" data-attachment="patchfile.patch" ></object>'
-	}
-	return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
+  sessionText='TRUE'
+  if (session) {
+    sessionText='sessionInfo()'
+  }
+  remote_url = parseRemote(git2r::remote_url(repo()),current_commit)
+  generatePatch('changed.patch')
+  patch_file=''
+  if (file.exists('changed.patch')) {
+    patch_file = '<object type="application/pdf" data="file://changed.patch" data-attachment="patchfile.patch" ></object>'
+  }
+  return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
 
 #' Reload a fully cached Note run
@@ -43,38 +43,50 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   Rgator:::getDataEnvironment()
 
   orig_cache_path = paste("cache_", gsub("\\..*", "", filename), "/", sep = "")
+  orig_wd=getwd()
+
   temp_cache_path = tempfile()
   dir.create(temp_cache_path)
   fs::dir_copy(orig_cache_path, temp_cache_path)
   fs::file_copy(filename,temp_cache_path)
-  orig_wd=getwd()
   setwd(temp_cache_path)
+  
+  hashes = list()
   knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
+  knitr::opts_knit$set(verbose=T);
   loaded_data = new.env()
-  output_text = knoter::knit(text = paste(c(readLines(filename), 
-                                              status.md(session = T)), collapse = "\n"), envir = loaded_data)
-
+  output_text = withCallingHandlers( {
+    knoter::knit(text = paste(c(readLines(filename), status.md(session = T)), collapse = "\n"), envir = loaded_data)
+    }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
   setwd(orig_wd)
+  
+  unique_hashes = unique(hashes)
+  unique_hashes = stringr::str_replace(stringr::str_replace(string=unique_hashes[which(grepl("^ *loading",unique_hashes))],pattern = '.* from ',''), '\n','')
+  unique_hashes = stringr::str_replace(unique_hashes,orig_cache_path,"")
+  
+  attributes(loaded_data)$hashes = unique_hashes
   return(loaded_data)
 }
 
 #' Perform a Note testrun
 #' @export
 note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE) {
-	if ( ! reuse.cache ) {
-		cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
-		if ( file.exists(cache_path) ) {
-			unlink( cache_path, recursive = TRUE )
-		}
-	}
-	note(filename,notebook=NULL,output=output)
+  if ( ! reuse.cache ) {
+    cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
+    if ( file.exists(cache_path) ) {
+      unlink( cache_path, recursive = TRUE )
+    }
+  }
+  note(filename,notebook=NULL,output=output)
 }
 
 #' Perform a Note
 #' @export
 note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10) {
 
-	Rgator:::getDataEnvironment();
+  Rgator:::getDataEnvironment();
+
+# assign('params',knitr:::flatten_params(knitr::knit_params(readLines('testme.Rmd'))),targetenv); knoter::knit(input='testme.Rmd',output='testme.html',envir=targetenv)
 
   pwd = rev(unlist(strsplit(getwd(),'/')))[1]
   if (grepl('^proj_',pwd)) {
