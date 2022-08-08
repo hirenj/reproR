@@ -70,23 +70,43 @@ load_cached_note_run = function (filename = "analysis.Rmd")
 
 #' Perform a Note testrun
 #' @export
-note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE) {
+note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE,params_file=NULL,params=list()) {
   if ( ! reuse.cache ) {
     cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
     if ( file.exists(cache_path) ) {
       unlink( cache_path, recursive = TRUE )
     }
   }
-  note(filename,notebook=NULL,output=output)
+  note(filename,notebook=NULL,output=output,params_file=params_file,params=params)
+}
+
+merge_lists <- function(base_list, overlay_list, recursive = TRUE) {
+  if (length(base_list) == 0)
+    overlay_list
+  else if (length(overlay_list) == 0)
+    base_list
+  else {
+    merged_list <- base_list
+    for (name in names(overlay_list)) {
+      base <- base_list[[name]]
+      overlay <- overlay_list[[name]]
+      if (is.list(base) && is.list(overlay) && recursive)
+        merged_list[[name]] <- merge_lists(base, overlay)
+      else {
+        merged_list[[name]] <- NULL
+        merged_list <- append(merged_list,
+                              overlay_list[which(names(overlay_list) %in% name)])
+      }
+    }
+    merged_list
+  }
 }
 
 #' Perform a Note
 #' @export
-note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10) {
+note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10,params_file=NULL,params=list()) {
 
   Rgator:::getDataEnvironment();
-
-# assign('params',knitr:::flatten_params(knitr::knit_params(readLines('testme.Rmd'))),targetenv); knoter::knit(input='testme.Rmd',output='testme.html',envir=targetenv)
 
   pwd = rev(unlist(strsplit(getwd(),'/')))[1]
   if (grepl('^proj_',pwd)) {
@@ -96,13 +116,41 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     stop(paste('No ',filename,sep=''))
   }
   knitr::opts_chunk$set(cache=TRUE,cache.path=paste('cache_',gsub('\\..*','',filename),'/',sep=''))
+
+  loaded_data = new.env()
+  default_params = knitr:::flatten_params(knitr:::knit_params(readLines(file(filename))))
+
+  if ( ! is.null(params_file)) {
+    default_params = merge_lists(default_params,
+                                 knitr:::flatten_params(knitr:::knit_params(c('---',readLines(file(params_file)),'---')))
+                                 )
+    assign('PARAMS_FILE',params_file,loaded_data)
+  }
+
+  if ( ! is.null(params) ) {
+    # verify they are a list
+    if (!is.list(params) || (length(names(params)) != length(params))) {
+      stop("render params argument must be a named list")
+    }
+
+    # verify that all parameters passed are also in the yaml
+    invalid_params <- setdiff(names(params), names(default_params))
+    if (length(invalid_params) > 0) {
+      stop("render params not declared in YAML: ",
+           paste(invalid_params, collapse = ", "))
+    }
+    params = merge_lists(default_params, params, recursive = FALSE)
+  }
+
+  assign('params',params,loaded_data)
+
+
+
   if (is.null(notebook) && is.null(output)) {
-    loaded_data = new.env()
     output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data)
     return(loaded_data)
   }
   if (is.null(notebook) && ! is.null(output)) {
-    loaded_data = new.env()
     output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data,output=output)
     return(loaded_data)
   }
