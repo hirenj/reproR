@@ -55,6 +55,9 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
   knitr::opts_knit$set(verbose=T);
   loaded_data = new.env()
+
+  assign('params',list(),loaded_data)
+
   output_text = withCallingHandlers( {
     knoter::knit(text = paste(c(readLines(filename), status.md(session = T)), collapse = "\n"), envir = loaded_data)
     }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
