@@ -54,6 +54,14 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   hashes = list()
   knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
   knitr::opts_knit$set(verbose=T);
+  knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
+    if (before) {
+      knitr::opts_chunk$set(cache.path=paste('cache_common',gsub('\\..*','',options$child.md),'/',sep='/'))
+    } else {
+      knitr::opts_chunk$set(cache.path=orig_cache_path)
+    }
+  })
+
   loaded_data = new.env()
 
   assign('params',list(),loaded_data)
@@ -118,8 +126,17 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   if ( ! file.exists(filename) ) {
     stop(paste('No ',filename,sep=''))
   }
-  knitr::opts_chunk$set(cache=TRUE,cache.path=paste('cache_',gsub('\\..*','',filename),'/',sep=''))
 
+  parent_cache=paste('cache_',gsub('\\..*','',filename),'/',sep='')
+
+  knitr::opts_chunk$set(cache=TRUE,cache.path=parent_cache)
+  knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
+    if (before) {
+      knitr::opts_chunk$set(cache.path=paste('cache_common',gsub('\\..*','',options$child.md),'/',sep='/'))
+    } else {
+      knitr::opts_chunk$set(cache.path=parent_cache)
+    }
+  })
   loaded_data = new.env()
   default_params = knitr:::flatten_params(knitr:::knit_params(readLines(file(filename))))
 
