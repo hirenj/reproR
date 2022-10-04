@@ -48,9 +48,14 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   temp_cache_path = tempfile()
   dir.create(temp_cache_path)
   fs::dir_copy(orig_cache_path, temp_cache_path)
-  fs::file_copy(filename,temp_cache_path)
+  if (dir.exists('cache_common')) {
+    fs::dir_copy('cache_common', temp_cache_path)    
+  }
+  for (file in list.files(pattern = "\\.Rmd$")) {
+    fs::file_copy(file,temp_cache_path)    
+  }
   setwd(temp_cache_path)
-  
+
   hashes = list()
   knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
   knitr::opts_knit$set(verbose=T);
