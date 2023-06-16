@@ -132,6 +132,9 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     stop(paste('No ',filename,sep=''))
   }
 
+  # The main issue here is that the cache folder setting is getting
+  # clobbered by the Rmarkdown::render method
+
   parent_cache=paste('cache_',gsub('\\..*','',filename),'/',sep='')
 
   knitr::opts_chunk$set(cache=TRUE,cache.path=parent_cache)
