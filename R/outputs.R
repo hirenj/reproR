@@ -42,7 +42,10 @@ load_cached_note_run = function (filename = "analysis.Rmd")
 {
   Rgator:::getDataEnvironment()
 
-  orig_cache_path = paste("cache_", gsub("\\..*", "", filename), "/", sep = "")
+  # The issue here is that loading the cached note run
+  # doesn't go directly back to the cache
+
+  orig_cache_path = paste(xfun::sans_ext(filename),'_cache','/',sep='')
   orig_wd=getwd()
 
   temp_cache_path = tempfile()
@@ -68,11 +71,14 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   })
 
   loaded_data = new.env()
-
-  assign('params',list(),loaded_data)
+  # params = list()
+  # class(params) <- c(class(params),'knit_param_list')
+  # assign('params',list(),loaded_data)
 
   output_text = withCallingHandlers( {
-    knoter::knit(text = paste(c(readLines(filename), status.md(session = T)), collapse = "\n"), envir = loaded_data)
+    rmarkdown::render(filename,envir=loaded_data,output_format=knoter::note_page())
+
+    #knoter::knit(text = paste(c(readLines(filename), status.md(session = T)), collapse = "\n"), envir = loaded_data)
     }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
   setwd(orig_wd)
   
@@ -86,9 +92,9 @@ load_cached_note_run = function (filename = "analysis.Rmd")
 
 #' Perform a Note testrun
 #' @export
-note_testrun <- function(filename='analysis.Rmd',output='testrun.html',reuse.cache=TRUE,params_file=NULL,params=list()) {
+note_testrun <- function(filename='analysis.Rmd',output=paste(xfun::sans_ext(filename),'_testrun.html',sep=''),reuse.cache=TRUE,params_file=NULL,params=list()) {
   if ( ! reuse.cache ) {
-    cache_path=paste('cache_',gsub('\\..*','',filename),'/',sep='')
+    cache_path=paste(xfun::sans_ext(filename),'_cache','/',sep='')
     if ( file.exists(cache_path) ) {
       unlink( cache_path, recursive = TRUE )
     }
@@ -132,15 +138,12 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     stop(paste('No ',filename,sep=''))
   }
 
-  # The main issue here is that the cache folder setting is getting
-  # clobbered by the Rmarkdown::render method
-
-  parent_cache=paste('cache_',gsub('\\..*','',filename),'/',sep='')
+  parent_cache=paste(xfun::sans_ext(filename),'_cache','/',sep='')
 
   knitr::opts_chunk$set(cache=TRUE,cache.path=parent_cache)
   knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
     if (before) {
-      knitr::opts_chunk$set(cache.path=paste('cache_common',gsub('\\..*','',options$child.md),'/',sep='/'))
+      knitr::opts_chunk$set(cache.path=paste('cache_common',xfun::sans_ext(options$child.md),'/',sep='/'))
     } else {
       knitr::opts_chunk$set(cache.path=parent_cache)
     }
@@ -171,7 +174,6 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   }
   class(params) <- c(class(params),'knit_param_list')
   assign('params',params,loaded_data)
-
 
   if (is.null(notebook) && is.null(output)) {
     output_text = rmarkdown::render(filename,envir=loaded_data,output_format=knoter::note_page())
