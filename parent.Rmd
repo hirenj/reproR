@@ -1,0 +1,81 @@
+---
+title: "Untitled document"
+output: html_document
+params:
+  a: 1
+  b: 2
+---
+
+Fpoo
+
+```{r}
+blah = function() {
+  
+}
+params$a
+```
+
+Baz
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+```{r}
+origCache <- knitr::opts_chunk$get("cache.path")
+message("HERE")
+message(origCache)
+knitr::opts_knit$get("verbose")
+```
+
+
+```{r}
+12
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+as.data.frame(summary(cars))
+```
+
+```{r}
+1+1
+2+2
+print(Sys.time())
+```
+
+```{r cache=F,dynamic.cache=T,child.md='child.Rmd'}
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+library(ggplot2)
+knoter::multipage(list(qplot(1:10),qplot(20:30),qplot(20:30),qplot(20:30),qplot(20:30)))
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+```{r echo=F,excel=T}
+1+1
+4+4
+foobar=data.frame(a=1:10,b=1:10)
+foobar
+foobar
+```
+
+This is the next
+
+
+```{r echo=F}
+1+1
+2+2
+knoter::excel(foo=data.frame(a=1:10,b=1:10))
+knoter::excel(bar=data.frame(a=1:10,b=1:10))
+```

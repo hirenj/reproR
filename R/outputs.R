@@ -42,9 +42,6 @@ load_cached_note_run = function (filename = "analysis.Rmd")
 {
   Rgator:::getDataEnvironment()
 
-  # The issue here is that loading the cached note run
-  # doesn't go directly back to the cache
-
   orig_cache_path = paste(xfun::sans_ext(filename),'_cache','/',sep='')
   orig_wd=getwd()
 
@@ -71,22 +68,32 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   })
 
   loaded_data = new.env()
-  # params = list()
-  # class(params) <- c(class(params),'knit_param_list')
-  # assign('params',list(),loaded_data)
 
   output_text = withCallingHandlers( {
-    rmarkdown::render(filename,envir=loaded_data,output_format=knoter::note_page())
-
-    #knoter::knit(text = paste(c(readLines(filename), status.md(session = T)), collapse = "\n"), envir = loaded_data)
-    }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
+    loaded_data = note_testrun(filename=filename)
+  }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
   setwd(orig_wd)
   
   unique_hashes = unique(hashes)
   unique_hashes = stringr::str_replace(stringr::str_replace(string=unique_hashes[which(grepl("^ *loading",unique_hashes))],pattern = '.* from ',''), '\n','')
   unique_hashes = stringr::str_replace(unique_hashes,orig_cache_path,"")
   
+  large_objects = names(which(sapply(ls(loaded_data),function(obj) { object.size(get(obj,loaded_data)) > 1024*1024*75 },USE.NAMES = T)))
+
+  rm(list=large_objects,envir=loaded_data)
+
   attributes(loaded_data)$hashes = unique_hashes
+
+  obj_sizes = sapply(ls(loaded_data),function(obj) {
+    object.size(get(obj,loaded_data))
+  },USE.NAMES = T)
+  df = data.frame(obj=names(obj_sizes),
+               size_raw=obj_sizes,
+               size=utils:::format.object_size(obj_sizes,units="MiB"))
+  sizes = dplyr::arrange(df,size_raw)
+
+  message("Output environment contains in total ",utils:::format.object_size(sum(sizes$size_raw),units="MiB"))
+
   return(loaded_data)
 }
 

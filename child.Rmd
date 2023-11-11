@@ -1,0 +1,9 @@
+---
+  title: "Child"
+---
+  
+```{r childchunk}
+params$a
+newparams = params
+print(Sys.time())
+```
