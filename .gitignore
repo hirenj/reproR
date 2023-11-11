@@ -1,5 +1,7 @@
 pkg/
 man/
+*_cache*
+*cache_*
 .Rproj.user
 .Rhistory
 .RData
