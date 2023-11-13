@@ -141,12 +141,11 @@ generatePatch <- function(patchfile='changed.patch') {
   }
   wd.patch = tempfile("patch")
   index.patch = tempfile("patch")
-  git2r::diff(repo(),filename=wd.patch,as_char=T)
-  git2r::diff(repo(),filename=index.patch,index=T,as_char=T)
+  repo_patch=git2r::diff(repo(),as_char=T)
+  index_patch=git2r::diff(repo(),index=T,as_char=T)
   fileConn<-file(patchfile)
-  writeLines(c( readChar(index.patch, file.info(index.patch)$size), readChar(wd.patch, file.info(wd.patch)$size) ), fileConn)
+  writeLines(c( index_patch, repo_patch ) , fileConn)
   close(fileConn)
-
   for (file in missing_files) {
     .Call(git2r:::git2r_index_remove_bypath,repo(),file)
   }

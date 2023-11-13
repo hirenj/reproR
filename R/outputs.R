@@ -147,6 +147,8 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   parent_cache=paste(xfun::sans_ext(filename),'_cache','/',sep='')
 
+  dir.create(parent_cache,showWarnings=FALSE)
+
   knitr::opts_chunk$set(cache=TRUE,cache.path=parent_cache)
   knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
     if (before) {
