@@ -182,15 +182,26 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   class(params) <- c(class(params),'knit_param_list')
   assign('params',params,loaded_data)
 
+  torender <- tempfile(fileext = ".Rmd",tmpdir=getwd())
+
+  temp_cache=paste(xfun::sans_ext(torender),'_cache','/',sep='')
+
+  on.exit(file.remove(torender))
+  on.exit(unlink(temp_cache))
+
+  cat(paste(c(readLines(filename),status.md(session=T)), collapse="\n"), file = torender)
+
   if (is.null(notebook) && is.null(output)) {
-    output_text = rmarkdown::render(filename,envir=loaded_data,output_format=knoter::note_page())
-#    output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data)
-    return(loaded_data)
+    output_text = rmarkdown::render(torender,envir=loaded_data,output_format=knoter::note_page())
+  } else if (is.null(notebook) && ! is.null(output)) {
+    output_text = rmarkdown::render(torender,output_file=output,envir=loaded_data,output_format=knoter::note_page())
+  } else {
+    output_text = rmarkdown::render(torender,output_file=paste('knitr.',pwd,'.html',sep=''),envir=loaded_data,output_format=knoter::note_page(notebook=notebook,section=pwd,sharepoint=sharepoint,batch.chunks=batch.chunks))
   }
-  if (is.null(notebook) && ! is.null(output)) {
-    output_text = rmarkdown::render(filename,output_file=output,envir=loaded_data,output_format=knoter::note_page())
-#    output_text = knoter::knit(text=paste(c(readLines(filename),status.md(session=T)), collapse="\n"),envir=loaded_data,output=output)
-    return(loaded_data)
-  }
-  rmarkdown::render(filename,output_file=paste('knitr.',pwd,'.html',sep=''),envir=loaded_data,output_format=knoter::note_page(notebook=notebook,section=pwd,sharepoint=sharepoint,batch.chunks=batch.chunks))
+
+  to_copy = list.files(temp_cache)
+
+  file.copy(file.path(temp_cache,to_copy), parent_cache,recursive=TRUE)
+
+  return(loaded_data)
 }
