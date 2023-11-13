@@ -186,8 +186,7 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   temp_cache=paste(xfun::sans_ext(torender),'_cache','/',sep='')
 
-  on.exit(file.remove(torender))
-  on.exit(unlink(temp_cache))
+  on.exit({ file.remove(torender); unlink(temp_cache,recursive=T) })
 
   cat(paste(c(readLines(filename),status.md(session=T)), collapse="\n"), file = torender)
 
