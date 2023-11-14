@@ -1,9 +1,12 @@
 ---
   title: "Child"
 ---
+
+## In the child
   
 ```{r childchunk}
 params$a
+params$b
 newparams = params
 print(Sys.time())
 ```

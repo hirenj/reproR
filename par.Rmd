@@ -1,9 +1,8 @@
 ---
 title: "Untitled document"
-output: html_document
 params:
-  a: 1
-  b: 2
+  a: "default_params_a"
+  b: "default_params_b"
 ---
 
 Fpoo
@@ -13,6 +12,7 @@ blah = function() {
   
 }
 params$a
+params$b
 ```
 
 Baz
