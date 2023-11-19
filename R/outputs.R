@@ -60,6 +60,13 @@ load_cached_note_run = function (filename = "analysis.Rmd")
 
   knitr::opts_knit$set(verbose=T);
 
+  knitr::opts_hooks$set(cache = function(options) {
+    if (options$cache == FALSE) {
+      options$eval = FALSE
+    }
+    options
+  })
+
   loaded_data = new.env()
 
   output_text = withCallingHandlers( {
