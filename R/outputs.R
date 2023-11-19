@@ -57,25 +57,8 @@ load_cached_note_run = function (filename = "analysis.Rmd")
   setwd(temp_cache_path)
 
   hashes = list()
-  knitr::opts_chunk$set(cache = TRUE, cache.path = orig_cache_path )
+
   knitr::opts_knit$set(verbose=T);
-
-  # Reset the cache path before running any chunks
-  knitr::opts_chunk$set(reset.cache.path=TRUE)
-  knitr::knit_hooks$set(reset.cache.path=function(before,options,envir) {
-    if (before) {
-      knitr::opts_chunk$set(cache.path=parent_cache)
-      knitr::opts_chunk$set(reset.cache.path=FALSE)
-    }
-  })
-
-  knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
-    if (before) {
-      knitr::opts_chunk$set(cache.path=paste('cache_common',gsub('\\..*','',options$child.md),'/',sep='/'))
-    } else {
-      knitr::opts_chunk$set(cache.path=orig_cache_path)
-    }
-  })
 
   loaded_data = new.env()
 
