@@ -148,7 +148,9 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   knitr::opts_chunk$set(reset.cache.path=TRUE)
   knitr::knit_hooks$set(reset.cache.path=function(before,options,envir) {
     if (before) {
-      knitr::opts_chunk$set(cache.path=parent_cache)
+      if ( knitr::opts_chunk$get('reset.cache.path') ) {
+        knitr::opts_chunk$set(cache.path=parent_cache)
+      }
       knitr::opts_chunk$set(reset.cache.path=FALSE)
     }
   })

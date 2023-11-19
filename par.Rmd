@@ -51,6 +51,9 @@ print(Sys.time())
 ```{r cache=F,dynamic.cache=T,child.md='child.Rmd'}
 ```
 
+```{r cache=F,dynamic.cache=T,child.md='child2.Rmd'}
+```
+
 ## Including Plots
 
 You can also embed plots, for example:

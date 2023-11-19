@@ -4,7 +4,7 @@
 
 ## In the child
   
-```{r childchunk}
+```{r childchunk2_1}
 params$a
 params$b
 newparams = params
@@ -14,7 +14,7 @@ print(Sys.time())
 
 ## In the child again
   
-```{r childchunk2}
+```{r childchunk2_2}
 params$a
 params$b
 newparams = params
@@ -23,7 +23,7 @@ print(Sys.time())
 
 ## In the child finally
   
-```{r childchunk3}
+```{r childchunk2_3}
 params$a
 params$b
 newparams = params
