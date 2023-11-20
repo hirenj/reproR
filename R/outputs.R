@@ -38,7 +38,7 @@ status.md <- function(session=F) {
 
 #' Reload a fully cached Note run
 #' @export
-load_cached_note_run = function (filename = "analysis.Rmd") 
+load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE) 
 {
   Rgator:::getDataEnvironment()
 
@@ -73,26 +73,33 @@ load_cached_note_run = function (filename = "analysis.Rmd")
     loaded_data = note_testrun(filename=filename)
   }, message=function(x) { hashes <<- c(hashes,x); message(x); invokeRestart("muffleMessage") });
   setwd(orig_wd)
-  
+  message("Finished collecting chunk hashes")
   unique_hashes = unique(hashes)
   unique_hashes = stringr::str_replace(stringr::str_replace(string=unique_hashes[which(grepl("^ *loading",unique_hashes))],pattern = '.* from ',''), '\n','')
   unique_hashes = stringr::str_replace(unique_hashes,orig_cache_path,"")
-  
-  large_objects = names(which(sapply(ls(loaded_data),function(obj) { object.size(get(obj,loaded_data)) > 1024*1024*75 },USE.NAMES = T)))
 
-  rm(list=large_objects,envir=loaded_data)
+
+  message("Setting hashes")
 
   attributes(loaded_data)$hashes = unique_hashes
 
-  obj_sizes = sapply(ls(loaded_data),function(obj) {
-    object.size(get(obj,loaded_data))
-  },USE.NAMES = T)
-  df = data.frame(obj=names(obj_sizes),
-               size_raw=obj_sizes,
-               size=utils:::format.object_size(obj_sizes,units="MiB"))
-  sizes = dplyr::arrange(df,size_raw)
+  if (thin)  {
+    message("Finding large objects")
+    large_objects = names(which(sapply(head(ls(loaded_data),3),function(obj) { message(obj); get(obj,loaded_data); },USE.NAMES=T))); #object.size(get(obj,loaded_data)) > 1024*1024*75; },USE.NAMES = T)))
+    message("Removing large objects")
+    rm(list=large_objects,envir=loaded_data)
+    obj_sizes = sapply(ls(loaded_data),function(obj) {
+      object.size(get(obj,loaded_data))
+    },USE.NAMES = T)
 
-  message("Output environment contains in total ",utils:::format.object_size(sum(sizes$size_raw),units="MiB"))
+    df = data.frame(obj=names(obj_sizes),
+                 size_raw=obj_sizes,
+                 size=utils:::format.object_size(obj_sizes,units="MiB"))
+    sizes = dplyr::arrange(df,size_raw)
+
+    message("Output environment contains in total ",utils:::format.object_size(sum(sizes$size_raw),units="MiB"))
+
+  }
 
   return(loaded_data)
 }
