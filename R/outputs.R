@@ -138,6 +138,13 @@ merge_lists <- function(base_list, overlay_list, recursive = TRUE) {
   }
 }
 
+read_utf8 <- function(file) {
+  if (inherits(file, 'connection')) con <- file else {
+    con <- base::file(file, encoding = 'UTF-8'); on.exit(close(con), add = TRUE)
+  }
+  enc2utf8(readLines(con, warn = FALSE))
+}
+
 #' Perform a Note
 #' @export
 note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.notebook'),sharepoint=getOption('knoter.sharepoint'),output=NULL,batch.chunks=10,params_file=NULL,params=list()) {
@@ -177,11 +184,11 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     }
   })
   loaded_data = new.env()
-  default_params = knitr:::flatten_params(knitr:::knit_params(readLines(file(filename))))
+  default_params = knitr:::flatten_params(knitr:::knit_params(read_utf8(filename)))
 
   if ( ! is.null(params_file)) {
     default_params = merge_lists(default_params,
-                                 knitr:::flatten_params(knitr:::knit_params(c('---',readLines(file(params_file)),'---')))
+                                 knitr:::flatten_params(knitr:::knit_params(c('---',read_utf8(params_file),'---')))
                                  )
     assign('PARAMS_FILE',params_file,loaded_data)
   }
