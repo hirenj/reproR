@@ -36,6 +36,47 @@ status.md <- function(session=F) {
   return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
 
+load_cache_file  = function(filename) {
+  envir=readRDS(filename)
+  with(attributes(envir), {
+    hash=stringr::str_match(path,'_([0-9a-f]{7})_')[,2]
+    sapply(file.path(path,hashes),function(x) {
+        if (stringr::str_detect(x,'cache_common')) {
+            x = stringr::str_replace(x,'^.*_([0-9a-f]{7})_(.*)/cache_common','cache_common_\\1_\\2')
+        }
+
+        if (file.exists(paste(x,'.rdx',sep=''))) {
+            lazyLoad(x,envir = envir)
+        } else {
+            load(paste(x,'.RData',sep=''),envir=envir)
+        }
+    })
+  })
+  envir
+}
+
+#' Expand loaded object
+#' @export
+hydrate_cached_note_run = function(filename=NULL)
+{
+  loaded_data = load_cache_file(filename)
+  message("Finding large objects")
+  large_objects = names(which(sapply(ls(loaded_data),function(obj) { object.size(get(obj,loaded_data)) > 1024*1024*75; },USE.NAMES = T)))
+  message("Removing large objects")
+  rm(list=large_objects,envir=loaded_data)
+  obj_sizes = sapply(ls(loaded_data),function(obj) {
+    object.size(get(obj,loaded_data))
+  },USE.NAMES = T)
+
+  df = data.frame(obj=names(obj_sizes),
+               size_raw=obj_sizes,
+               size=utils:::format.object_size(obj_sizes,units="MiB"))
+  sizes = dplyr::arrange(df,size_raw)
+
+  message("Output environment contains in total ",utils:::format.object_size(sum(sizes$size_raw),units="MiB"))
+  saveRDS(loaded_data,paste(tools::file_path_sans_ext(filename),'.hydrated.Rds',sep='',collapse=''))
+}
+
 #' Reload a fully cached Note run
 #' @export
 load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE) 
