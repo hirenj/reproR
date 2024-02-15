@@ -47,12 +47,32 @@ load_cache_file  = function(filename) {
 
         if (file.exists(paste(x,'.rdx',sep=''))) {
             lazyLoad(x,envir = envir)
-        } else {
+        } else if (file.exists(paste(x,'.RData',sep='')))  {
             load(paste(x,'.RData',sep=''),envir=envir)
         }
     })
   })
   envir
+}
+
+hydrate_cache_file  = function(filename,threshold=1024*1024*75,keep=NA) {
+  loaded_data=load_cache_file(filename)
+  message("Finding large objects")
+  large_objects = names(which(sapply(ls(loaded_data),function(obj) { object.size(get(obj,loaded_data)) > threshold; },USE.NAMES = T)))
+  message("Removing large objects")
+  large_objects = large_objects[! large_objects %in% keep ]
+  rm(list=large_objects,envir=loaded_data)
+  obj_sizes = sapply(ls(loaded_data),function(obj) {
+    object.size(get(obj,loaded_data))
+  },USE.NAMES = T)
+
+  df = data.frame(obj=names(obj_sizes),
+               size_raw=obj_sizes,
+               size=utils:::format.object_size(obj_sizes,units="MiB"))
+  sizes = dplyr::arrange(df,size_raw)
+
+  message("Output environment contains in total ",utils:::format.object_size(sum(sizes$size_raw),units="MiB"))
+  saveRDS(loaded_data,paste(tools::file_path_sans_ext(filename),'.hydrated.Rds',sep='',collapse=''))
 }
 
 #' Expand loaded object
