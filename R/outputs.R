@@ -224,6 +224,8 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   dir.create(parent_cache,showWarnings=FALSE)
 
+  knitr::opts_knit$set(root.dir = getwd())
+
   knitr::opts_chunk$set(cache=TRUE,cache.path=parent_cache)
 
   # Reset the cache path before running any chunks
