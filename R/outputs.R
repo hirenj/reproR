@@ -281,7 +281,7 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   on.exit({ file.remove(torender); unlink(temp_cache,recursive=T) })
 
-  cat(paste(c(readLines(filename),status.md(session=T)), collapse="\n"), file = torender)
+  cat(paste(c(read_utf8(filename),status.md(session=T)), collapse="\n"), file = torender)
 
   if (is.null(notebook) && is.null(output)) {
     output_text = rmarkdown::render(torender,envir=loaded_data,params=params,output_format=knoter::note_page())
