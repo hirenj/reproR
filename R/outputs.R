@@ -239,7 +239,8 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
     if (before) {
-      knitr::opts_chunk$set(cache.path=paste('cache_common',xfun::sans_ext(options$child.md),'/',sep='/'))
+      child_sans_ext = gsub( '/','_', basename(xfun::sans_ext(options$child.md)))
+      knitr::opts_chunk$set(cache.path=paste('cache_common', child_sans_ext,'/',sep='/'))
     } else {
       knitr::opts_chunk$set(cache.path=parent_cache)
     }
