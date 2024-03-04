@@ -1,0 +1,9 @@
+## This is the parent
+
+```{r}
+1+1
+Sys.sleep(5)
+```
+
+```{r cache=F,dynamic.cache=T,child.md='child.Rmd'}
+```
