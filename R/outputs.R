@@ -135,8 +135,10 @@ load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE)
     }
   }
 
-  for (file in list.files(pattern = "\\.Rmd$")) {
-    fs::file_copy(file,temp_cache_path)
+  for (file in list.files(pattern = "\\.Rmd$",recursive=T)) {
+    target_file=file.path(temp_cache_path,file)
+    dir.create(dirname(target_file),showWarnings=F,recursive=T)
+    fs::file_copy(file,target_file)
   }
   setwd(temp_cache_path)
 

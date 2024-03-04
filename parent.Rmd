@@ -7,3 +7,6 @@ Sys.sleep(5)
 
 ```{r cache=F,dynamic.cache=T,child.md='child.Rmd'}
 ```
+
+```{r cache=F,dynamic.cache=T,child.md='a_module/test.Rmd'}
+```
