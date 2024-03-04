@@ -38,7 +38,7 @@ status.md <- function(session=F) {
   if (file.exists('changed.patch')) {
     patch_file = '<object type="application/pdf" data="file://changed.patch" data-attachment="patchfile.patch" ></object>'
   }
-  return(paste('## Commit ',current_commit,'\n [',current_commit,'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
+  return(paste('## Commit ',substring(current_commit,1,7),' on ',paste(c(httr::parse_url(remote_url)$hostname, head(unlist(strsplit(httr::parse_url(remote_url)$path,'/')),2)),collapse='/' ) ,'\n [',substring(current_commit,1,7),'](',remote_url,')\n\n```{r}\n',sessionText,'\n```\n\n',patch_file,sep=''))
 }
 
 load_cache_file  = function(filename) {
