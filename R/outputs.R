@@ -1,19 +1,24 @@
 parseRemote <- function(url,sha) {
-  url_components = strsplit(url,'/')
-  lapply(url_components,function(components) {
-    if ("github.com" %in% components) {
-      return(paste("https://github.com/",components[4],"/",gsub('\\.git','',components[5]),"/commit/",sha,sep=""))
+  components = unlist(strsplit(url,'/'))
+  if (any(grep("@",components))) {
+
+    host = gsub( ':.*', '', gsub('.*@','',components[1]))
+    username = gsub(".*:","",components[1])
+    repo = gsub('\\.git','',components[2])
+
+    if (host == "gist.github.com") {
+      return(paste("https://gist.github.com/",gsub( '\\.git','',gsub(".*:","",components[1])),"/",sha,sep="" ))
     }
-    if (length(grep("@github.com",components)) > 0) {
-      return(paste("https://github.com/",gsub(".*:","",components[1]),"/",gsub('\\.git','',components[2]), "/commit/",sha,sep="" ))
-    }
+
+    return(paste("https://",host,"/",username,"/",repo, "/commit/",sha,sep="" ))
+  }
+  if (components[1] == 'https:') {
     if ("gist.github.com" %in% components) {
       return(paste("https://gist.github.com/",gsub('\\.git','',components[4]),"/",sha,sep=""))
     }
-    if (length(grep("@gist.github.com",components)) > 0) {
-      return(paste("https://gist.github.com/",gsub( '\\.git','',gsub(".*:","",components[1])),"/",sha,sep="" ))
-    }
-  })
+    return(paste(components[1],"//",components[3],"/", components[4],"/",gsub('\\.git','',components[5]),"/commit/",sha,sep=""))
+  }
+
 }
 
 #' Generate markdown
@@ -99,21 +104,39 @@ hydrate_cached_note_run = function(filename=NULL)
 
 #' Reload a fully cached Note run
 #' @export
-load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE) 
+load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE)
 {
   Rgator:::getDataEnvironment()
-
+  parent_path = getOption('repro.cache.path',default=Sys.getenv('REPROR_CACHE_PATH'))
   orig_cache_path = paste(xfun::sans_ext(filename),'_cache','/',sep='')
+  if (parent_path != "") {
+    message("Parent cache path set, skipping copying cache files")
+    orig_cache_path = file.path(parent_path,orig_cache_path)
+  }
   orig_wd=getwd()
 
   temp_cache_path = tempfile()
   dir.create(temp_cache_path)
-  fs::dir_copy(orig_cache_path, temp_cache_path)
-  if (dir.exists('cache_common')) {
-    fs::dir_copy('cache_common', temp_cache_path)    
+
+  # There's no point in copying the cache files over
+  # when there is a global cache path
+  # because knitr embeds the cache path into
+  # the objects it saves, and it doesn't look
+  # easy to remove that dependency
+  
+  if (parent_path == "") {
+    fs::dir_copy(orig_cache_path, temp_cache_path)
+    cache_common_path='cache_common'
+    if (parent_path != "") {
+      cache_common_path = file.path(parent_path,cache_common_path)
+    }
+    if (dir.exists(cache_common_path)) {
+      fs::dir_copy(cache_common_path, temp_cache_path)
+    }
   }
+
   for (file in list.files(pattern = "\\.Rmd$")) {
-    fs::file_copy(file,temp_cache_path)    
+    fs::file_copy(file,temp_cache_path)
   }
   setwd(temp_cache_path)
 
@@ -169,7 +192,11 @@ load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE)
 #' @export
 note_testrun <- function(filename='analysis.Rmd',output=paste(xfun::sans_ext(filename),'_testrun.html',sep=''),reuse.cache=TRUE,params_file=NULL,params=list()) {
   if ( ! reuse.cache ) {
+    parent_path = getOption('repro.cache.path',default=Sys.getenv('REPROR_CACHE_PATH'))
     cache_path=paste(xfun::sans_ext(filename),'_cache','/',sep='')
+    if (parent_path != "") {
+      cache_path = file.path(parent_path,cache_path)
+    }
     if ( file.exists(cache_path) ) {
       unlink( cache_path, recursive = TRUE )
     }
@@ -220,7 +247,13 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
     stop(paste('No ',filename,sep=''))
   }
 
+  parent_path = getOption('repro.cache.path',default=Sys.getenv('REPROR_CACHE_PATH'))
   parent_cache=paste(xfun::sans_ext(filename),'_cache','/',sep='')
+
+  if (parent_path != "") {
+    parent_cache=file.path(parent_path, parent_cache)
+  }
+
 
   dir.create(parent_cache,showWarnings=FALSE)
 
@@ -233,6 +266,7 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   knitr::knit_hooks$set(reset.cache.path=function(before,options,envir) {
     if (before) {
       if ( knitr::opts_chunk$get('reset.cache.path') ) {
+        message("\nSetting parent cache to ",parent_cache)
         knitr::opts_chunk$set(cache.path=parent_cache)
       }
       knitr::opts_chunk$set(reset.cache.path=FALSE)
@@ -242,8 +276,14 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
   knitr::knit_hooks$set(dynamic.cache=function(before,options,envir) {
     if (before) {
       child_sans_ext = gsub( '/','_', basename(xfun::sans_ext(options$child.md)))
-      knitr::opts_chunk$set(cache.path=paste('cache_common', child_sans_ext,'/',sep='/'))
+      child_path = file.path('cache_common', child_sans_ext)
+      if (parent_path != "") {
+        child_path = file.path(parent_path,child_path)
+      }
+      message("\nSetting child cache path to ",child_path)
+      knitr::opts_chunk$set(cache.path=paste(child_path,'/',sep=''))
     } else {
+      message("\nResetting cache path to ",parent_cache)
       knitr::opts_chunk$set(cache.path=parent_cache)
     }
   })
@@ -281,7 +321,7 @@ note <- function(filename='analysis.Rmd',notebook=getOption('knoter.default.note
 
   on.exit({ file.remove(torender); unlink(temp_cache,recursive=T) })
 
-  cat(paste(c(read_utf8(filename),status.md(session=T)), collapse="\n"), file = torender)
+  cat(paste(c('```{r cache=F,include=F}\nTRUE\n```\n\n' ,read_utf8(filename),status.md(session=T)), collapse="\n"), file = torender)
 
   if (is.null(notebook) && is.null(output)) {
     output_text = rmarkdown::render(torender,envir=loaded_data,params=params,output_format=knoter::note_page())
