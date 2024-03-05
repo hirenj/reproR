@@ -1,0 +1,11 @@
+```{r}
+randomnumber=runif(1)
+```
+
+In child
+
+```{r}
+randomnumber
+```
+
+End in child

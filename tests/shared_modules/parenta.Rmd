@@ -1,0 +1,20 @@
+---
+title: "Parent notebook"
+params:
+  param: a
+---
+
+# Parent A
+
+```{r cache=F}
+message("This is a test in parent A")
+set.seed(1)
+```
+
+```{r cache=F,dynamic.cache=T,child.md='module/child.Rmd'}
+```
+
+
+```{r cache=F}
+randomnumber+1
+```
