@@ -192,7 +192,7 @@ load_cached_note_run = function (filename = "analysis.Rmd",thin=FALSE)
 
 #' Perform a Note testrun
 #' @export
-note_testrun <- function(filename='analysis.Rmd',output=paste(xfun::sans_ext(filename),'_testrun.html',sep=''),reuse.cache=TRUE,params_file=NULL,params=list()) {
+note_testrun <- function(filename='analysis.Rmd',output=paste(xfun::sans_ext(basename(filename)),'_testrun.html',sep=''),reuse.cache=TRUE,params_file=NULL,params=list()) {
   if ( ! reuse.cache ) {
     parent_path = getOption('repro.cache.path',default=Sys.getenv('REPROR_CACHE_PATH'))
     cache_path=paste(xfun::sans_ext(filename),'_cache','/',sep='')
